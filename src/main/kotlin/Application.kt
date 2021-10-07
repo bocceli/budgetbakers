@@ -4,14 +4,18 @@ import io.javalin.Javalin
 class Application {
 
     init {
-        val genVals = ArrayList<String>()
+        var genVals = ArrayList<String>()
         val app = Javalin.create().start(8081)
         app.get("/generate") { ctx ->
             run {
-                genVals.add(generate())
-                genVals.sortWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it })
+                val regex = "([abcdef]{3}\\d){1,2}"
+                val generex = Generex(regex)
+
+                val values = generex.getMatchedStrings(10000000)
+                genVals = values.toCollection(ArrayList())
                 genVals.sortBy { it.length }
-                ctx.result(genVals.joinToString(separator = "\n"))
+
+                ctx.result("Vygenerovano ${genVals.size} polozek") // Vygeneruje 4 667 760 polozek
             }
         }
         app.get("/search") { ctx ->
@@ -41,12 +45,6 @@ class Application {
                 }
             }
         }
-    }
-
-    fun generate(): String {
-        val regex = "([abcdef]{3}\\d){1,2}"
-        val generex = Generex(regex)
-        return generex.random()
     }
 
     fun isValid(text: String): Boolean {
